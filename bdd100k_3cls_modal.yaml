@@ -1,0 +1,5 @@
+path: /vol/data/yolo_3cls
+train: images/train
+val: images/val
+test: images/test
+names: [traffic_sign, pedestrian, vehicle]

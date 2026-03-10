@@ -1,0 +1,30 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# Local datasets and generated artifacts
+data/*
+!data/.gitkeep
+!data/README.md
+
+runs/*
+!runs/.gitkeep
+
+# Model weights and checkpoints
+*.pt
+*.onnx
+*.engine
+
+# Training logs
+logs/
+*.log
+logs*.txt
+
+# OS/editor noise
+.DS_Store
+
+*.jpg
