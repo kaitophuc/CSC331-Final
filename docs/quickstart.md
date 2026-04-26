@@ -40,3 +40,35 @@ Alternative shell wrapper (same defaults):
 make train DATA=data/dataset.yaml DEVICE=0
 make infer SOURCE=data/infer DEVICE=0
 ```
+
+## 5) TensorRT YOLO26m inference
+
+The dedicated TensorRT CLI is `infer.py`. It uses Ultralytics export so the
+model is converted to a static ONNX graph, Conv+BatchNorm is fused into Conv
+with bias before export, and TensorRT builds the final `.engine`.
+
+```
+venv/bin/python infer.py export-trt --inspect
+venv/bin/python infer.py infer-trt --source bus.jpg
+```
+
+Equivalent Makefile shortcuts:
+
+```
+make trt-export
+make trt-infer
+make trt-pipeline
+```
+
+Defaults target:
+
+```
+runs/detect/runs/train/bdd3_y26m_1280_e15_ft_b4_nomosaic_clean_lr5e4/weights/best.pt
+```
+
+TensorRT export/inference requires an NVIDIA GPU-visible session and a
+platform-compatible TensorRT install. Expected extras are `onnx`, `onnxslim`,
+`onnxruntime-gpu`, and `tensorrt`. The current local shell has CUDA-built
+PyTorch but no visible GPU and no TensorRT/ONNX packages, so `export-trt` should
+stop early here with an environment message; build the `.engine` on the target
+GPU machine where it will be used.

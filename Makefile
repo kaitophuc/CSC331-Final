@@ -26,8 +26,20 @@ RTDETR_PATIENCE ?= 20
 RTDETR_OPTIMIZER ?= AdamW
 RTDETR_LR0 ?= 0.0001
 RTDETR_WEIGHT_DECAY ?= 0.0005
+TRT_WEIGHTS ?= runs/detect/runs/train/bdd3_y26m_1280_e15_ft_b4_nomosaic_clean_lr5e4/weights/best.pt
+TRT_ENGINE ?=
+TRT_SOURCE ?= bus.jpg
+TRT_IMGSZ ?= 1280
+TRT_BATCH ?= 1
+TRT_DEVICE ?= 0
+TRT_CONF ?= 0.25
+TRT_INFER_NAME ?= yolo26m_trt
+TRT_WORKSPACE ?=
+TRT_HALF ?= --half
+TRT_INSPECT ?= --inspect
+TRT_OVERWRITE ?=
 
-.PHONY: train infer pipeline rtdetr-train rtdetr-infer rtdetr-pipeline
+.PHONY: train infer pipeline rtdetr-train rtdetr-infer rtdetr-pipeline trt-export trt-infer trt-pipeline
 
 train:
 	$(PYTHON) -m src.yolo_pipeline train \
@@ -118,4 +130,44 @@ rtdetr-pipeline:
 		--train-name $(RTDETR_TRAIN_NAME) \
 		--infer-name $(RTDETR_INFER_NAME) \
 		--conf $(RTDETR_CONF) \
+		--exist-ok
+
+trt-export:
+	$(PYTHON) infer.py export-trt \
+		--weights $(TRT_WEIGHTS) \
+		$(if $(TRT_ENGINE),--engine $(TRT_ENGINE),) \
+		--imgsz $(TRT_IMGSZ) \
+		--batch $(TRT_BATCH) \
+		--device $(TRT_DEVICE) \
+		$(TRT_HALF) \
+		$(if $(TRT_WORKSPACE),--workspace $(TRT_WORKSPACE),) \
+		$(TRT_INSPECT) \
+		$(TRT_OVERWRITE)
+
+trt-infer:
+	$(PYTHON) infer.py infer-trt \
+		--engine $(if $(TRT_ENGINE),$(TRT_ENGINE),$(TRT_WEIGHTS:.pt=.engine)) \
+		--source $(TRT_SOURCE) \
+		--imgsz $(TRT_IMGSZ) \
+		--conf $(TRT_CONF) \
+		--device $(TRT_DEVICE) \
+		--project runs/tensorrt/infer \
+		--name $(TRT_INFER_NAME) \
+		--exist-ok
+
+trt-pipeline:
+	$(PYTHON) infer.py pipeline-trt \
+		--weights $(TRT_WEIGHTS) \
+		$(if $(TRT_ENGINE),--engine $(TRT_ENGINE),) \
+		--source $(TRT_SOURCE) \
+		--imgsz $(TRT_IMGSZ) \
+		--batch $(TRT_BATCH) \
+		--conf $(TRT_CONF) \
+		--device $(TRT_DEVICE) \
+		--project runs/tensorrt/infer \
+		--name $(TRT_INFER_NAME) \
+		$(TRT_HALF) \
+		$(if $(TRT_WORKSPACE),--workspace $(TRT_WORKSPACE),) \
+		$(TRT_INSPECT) \
+		$(TRT_OVERWRITE) \
 		--exist-ok
